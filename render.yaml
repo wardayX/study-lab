@@ -1,3 +1,4 @@
+
 services:
   - type: web
     name: study-lab
@@ -8,7 +9,7 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 22.16.0
-      - key: GEMINI_API_KEY
+      - key: GROQ_API_KEY
         sync: false
-      - key: GEMINI_MODEL
-        value: gemini-2.5-flash
+      - key: GROQ_MODEL
+        value: openai/gpt-oss-120b

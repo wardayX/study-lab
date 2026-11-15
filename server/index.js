@@ -18,42 +18,61 @@ try {
 const PORT = Number(process.env.PORT || 8787)
 const MAX_BODY = 30_000
 
+
 const responseSchema = {
-  type: 'OBJECT',
+  type: 'object',
+  additionalProperties: false,
   properties: {
-    title: { type: 'STRING' },
-    subject: { type: 'STRING' },
-    summary: { type: 'STRING' },
+    title: { type: 'string' },
+    subject: { type: 'string' },
+    summary: { type: 'string' },
     flashcards: {
-      type: 'ARRAY',
+      type: 'array',
       items: {
-        type: 'OBJECT',
+        type: 'object',
+        additionalProperties: false,
         properties: {
-          question: { type: 'STRING' },
-          answer: { type: 'STRING' },
-          explanation: { type: 'STRING' },
-          difficulty: { type: 'STRING', enum: ['Easy', 'Medium', 'Hard'] },
+          question: { type: 'string' },
+          answer: { type: 'string' },
+          explanation: { type: 'string' },
+          difficulty: {
+            type: 'string',
+            enum: ['Easy', 'Medium', 'Hard']
+          }
         },
-        required: ['question', 'answer', 'explanation', 'difficulty'],
-      },
+        required: [
+          'question', 'answer', 'explanation', 'difficulty'
+        ]
+      }
     },
     quiz: {
-      type: 'ARRAY',
+      type: 'array',
       items: {
-        type: 'OBJECT',
+        type: 'object',
+        additionalProperties: false,
         properties: {
-          question: { type: 'STRING' },
-          options: { type: 'ARRAY', items: { type: 'STRING' } },
-          correctAnswer: { type: 'INTEGER' },
-          explanation: { type: 'STRING' },
-          difficulty: { type: 'STRING', enum: ['Easy', 'Medium', 'Hard'] },
+          question: { type: 'string' },
+          options: {
+            type: 'array',
+            items: { type: 'string' }
+          },
+          correctAnswer: { type: 'integer' },
+          explanation: { type: 'string' },
+          difficulty: {
+            type: 'string',
+            enum: ['Easy', 'Medium', 'Hard']
+          }
         },
-        required: ['question', 'options', 'correctAnswer', 'explanation', 'difficulty'],
-      },
-    },
+        required: [
+          'question', 'options', 'correctAnswer',
+          'explanation', 'difficulty'
+        ]
+      }
+    }
   },
-  required: ['title', 'subject', 'summary', 'flashcards', 'quiz'],
+  required: ['title', 'subject', 'summary', 'flashcards', 'quiz']
 }
+
 
 function validateStudySet(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return 'The model returned an invalid object.'
@@ -78,46 +97,167 @@ async function readJson(req) {
   try { return JSON.parse(raw) } catch { throw new Error('The request body was not valid JSON.') }
 }
 
+
 async function generate(req, res) {
   const body = await readJson(req)
   const notes = typeof body.notes === 'string' ? body.notes.trim() : ''
-  if (notes.length < 20) return send(res, 400, { error: 'Add at least 20 characters so the AI has enough material to work with.' })
-  if (notes.length > 20_000) return send(res, 400, { error: 'Your notes are too long. Keep them under 20,000 characters.' })
 
-  const apiKey = process.env.GEMINI_API_KEY
-  if (!apiKey) return send(res, 503, { error: 'The AI service is not configured yet. Add GEMINI_API_KEY to your .env file and restart the server.' })
-
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 45_000)
-  try {
-    const upstream = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${process.env.GEMINI_MODEL || 'gemini-2.5-flash'}:generateContent?key=${encodeURIComponent(apiKey)}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      signal: controller.signal,
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: 'You are STUDY//LAB, a precise learning-material generator. Use only the supplied source material. Do not invent facts. If the material is too thin, make fewer questions rather than adding unsupported facts. Return valid JSON matching the schema. Generate 6 to 10 flashcards and 5 to 8 multiple-choice questions. Each quiz must have exactly four options and correctAnswer must be a zero-based index. Keep explanations concise and useful.' }] },
-        contents: [{ role: 'user', parts: [{ text: `Turn the following material into a compact study set. Preserve the source terminology and do not add unsupported claims.\n\nSOURCE MATERIAL:\n${notes}` }] }],
-        generationConfig: { responseMimeType: 'application/json', responseSchema, temperature: 0.35 },
-      }),
+  if (notes.length < 20) {
+    return send(res, 400, {
+      error: 'Add at least 20 characters.'
     })
+  }
+
+  if (notes.length > 20000) {
+    return send(res, 400, {
+      error: 'Your notes are too long. Keep them under 20,000 characters.'
+    })
+  }
+
+  const apiKey = process.env.GROQ_API_KEY
+
+  if (!apiKey) {
+    return send(res, 503, {
+      error: 'Groq API key is missing. Configure GROQ_API_KEY on the server.'
+    })
+  }
+
+  const model = process.env.GROQ_MODEL || 'openai/gpt-oss-120b'
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 60_000)
+  const startedAt = Date.now()
+
+  try {
+    const upstream = await fetch(
+      'https://api.groq.com/openai/v1/chat/completions',
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model,
+          messages: [
+            {
+              role: 'system',
+              content: `You are STUDY//LAB, a precise educational learning assistant.
+
+Create a structured study set from the user's input.
+
+If detailed notes are provided, prioritize their information.
+If only a topic is provided, explain it using your general knowledge.
+Do not invent facts or claim that outside information came from the notes.
+
+Generate exactly:
+- 6 flashcards
+- 4 multiple-choice questions
+- 4 options per question
+
+Each flashcard needs a question, answer, explanation and difficulty.
+Each quiz needs a question, four options, a zero-based correctAnswer,
+an explanation and difficulty.
+
+Keep explanations concise and educational.
+Avoid duplicate questions.
+Return only the requested structured data.`
+            },
+            {
+              role: 'user',
+              content: `Create a study set from this material:\n\n${notes}`
+            }
+          ],
+          response_format: {
+            type: 'json_schema',
+            json_schema: {
+              name: 'study_set',
+              strict: true,
+              schema: responseSchema
+            }
+          },
+          temperature: 0.3,
+          max_completion_tokens: 4096
+        })
+      }
+    )
+
     const payload = await upstream.json().catch(() => ({}))
+
+    console.log(
+      `Groq request: model=${model}, status=${upstream.status}, duration=${Date.now() - startedAt}ms`
+    )
+
     if (!upstream.ok) {
-      const message = payload?.error?.message || `AI provider returned HTTP ${upstream.status}.`
-      return send(res, upstream.status === 429 ? 429 : 502, { error: message })
+      const providerMessage = payload?.error?.message || ''
+
+      console.error('Groq API error:', upstream.status, providerMessage)
+
+      if (upstream.status === 429) {
+        return send(res, 429, {
+          error: 'Groq rate limit reached. Please wait before trying again.'
+        })
+      }
+
+      if (upstream.status === 503 || upstream.status >= 500) {
+        return send(res, 503, {
+          error: 'Groq is temporarily unavailable. Please try again shortly.'
+        })
+      }
+
+      return send(res, 502, {
+        error: `Groq returned an error (${upstream.status}). Check the server logs.`
+      })
     }
-    const rawText = payload?.candidates?.[0]?.content?.parts?.map(part => part.text || '').join('') || ''
+
+    const rawText = payload?.choices?.[0]?.message?.content
+
+    if (!rawText) {
+      return send(res, 502, {
+        error: 'Groq returned an empty response. Please retry.'
+      })
+    }
+
     let studySet
-    try { studySet = JSON.parse(rawText) } catch { return send(res, 502, { error: 'The AI returned malformed JSON. Try generating again.' }) }
+
+    try {
+      studySet = JSON.parse(rawText)
+    } catch {
+      return send(res, 502, {
+        error: 'The AI returned malformed JSON. Please retry.'
+      })
+    }
+
     const validationError = validateStudySet(studySet)
-    if (validationError) return send(res, 502, { error: `${validationError} Try generating again.` })
+
+    if (validationError) {
+      console.error('Study set validation failed:', validationError)
+
+      return send(res, 502, {
+        error: `${validationError} Please retry.`
+      })
+    }
+
     return send(res, 200, { data: studySet })
+
   } catch (error) {
-    const message = error.name === 'AbortError' ? 'The AI request took too long. Please retry.' : 'Could not reach the AI service. Check your connection and retry.'
-    return send(res, 502, { error: message })
+    console.error('Groq request failed:', error)
+
+    if (error.name === 'AbortError') {
+      return send(res, 504, {
+        error: 'Groq took longer than 60 seconds to respond. Please retry.'
+      })
+    }
+
+    return send(res, 502, {
+      error: 'Could not connect to Groq. Check your connection and retry.'
+    })
+
   } finally {
     clearTimeout(timeout)
   }
 }
+
 
 function send(res, status, value, headers = {}) {
   res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...headers })
@@ -128,7 +268,7 @@ const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css
 
 const server = http.createServer(async (req, res) => {
   if (req.method === 'OPTIONS') return send(res, 204, {})
-  if (req.url === '/api/health' && req.method === 'GET') return send(res, 200, { ok: true, configured: Boolean(process.env.GEMINI_API_KEY) })
+  if (req.url === '/api/health' && req.method === 'GET') return send(res, 200, { ok: true, configured: Boolean(process.env.GROQ_API_KEY) })
   if (req.url === '/api/generate' && req.method === 'POST') {
     try { return await generate(req, res) } catch (error) { return send(res, 400, { error: error.message || 'Invalid request.' }) }
   }
