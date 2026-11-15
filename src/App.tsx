@@ -254,7 +254,14 @@ function App() {
         </section>
       </section>
 
-      <footer className="footer"><span>STUDY//LAB © 2026</span><span>DESIGNED AS AN EXPERIMENT IN ACTIVE RECALL</span><span>BUILT WITH CURIOSITY ↗</span></footer>
+      <footer className="footer"><span>STUDY//LAB © 2026</span><span>DESIGNED AS AN EXPERIMENT IN ACTIVE RECALL</span><span><a
+          href="https://hrishikeshnath-portfolio.vercel.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="portfolio-link"
+        >
+          PORTFOLIO ↗
+        </a></span></footer>
     </main>
   )
 }
