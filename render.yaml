@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: study-lab
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start:production
+    envVars:
+      - key: NODE_VERSION
+        value: 22.16.0
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash

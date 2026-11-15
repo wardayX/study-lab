@@ -1,0 +1,5 @@
+@font-face{font-family:'New Title';src:url('/fonts/NewTitle/Fonts/WEB/fonts/NewTitle-Bold.woff2') format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:'Clash Grotesk';src:url('/fonts/ClashGrotesk_Complete/Fonts/WEB/fonts/ClashGrotesk-Variable.woff2') format('woff2');font-weight:200 700;font-display:swap}
+@font-face{font-family:'Nippo';src:url('/fonts/Nippo_Complete/Fonts/WEB/fonts/Nippo-Variable.woff2') format('woff2');font-weight:200 700;font-display:swap}
+@font-face{font-family:'Boska';src:url('/fonts/Boska_Complete/Fonts/WEB/fonts/Boska-Variable.woff2') format('woff2');font-weight:200 700;font-display:swap}
+:root{font-family:'Clash Grotesk',Arial,sans-serif;color:#171717;background:#f2f0e9;font-synthesis:none;text-rendering:optimizeLegibility;font-optical-sizing:auto;font-weight:400}*{box-sizing:border-box}html{min-width:320px;scroll-behavior:smooth}body{margin:0;min-width:320px;min-height:100vh}button,textarea{font:inherit}button{cursor:pointer}button:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid #a6c76a;outline-offset:4px}::selection{background:#a6c76a;color:#171816}
