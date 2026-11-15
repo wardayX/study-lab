@@ -172,11 +172,11 @@ function App() {
 
       <section className="hero" id="top">
         <div className="hero-copy">
-          <p className="eyebrow reveal"><span>01 / LEARNING SYSTEM</span><span>BUILT FOR CURIOSITY</span></p>
+          <p className="eyebrow reveal"><span>LEARNING SYSTEM</span><span>BUILT FOR CURIOSITY</span></p>
           <h1 className="hero-title reveal">Turn information<br />into <em>understanding.</em></h1>
           <p className="hero-description reveal">A small learning instrument that transforms your notes into active recall. Generate. Practice. Revisit what matters.</p>
         </div>
-        <div className="hero-mark" aria-hidden="true"><div className="hero-orbit orbit-a"/><div className="hero-orbit orbit-b"/><div className="hero-orbit orbit-c"/><div className="hero-core"><span>✳</span><small>KNOWLEDGE<br/>ENGINE</small></div><i className="orbit-node node-a"/><i className="orbit-node node-b"/><b className="hero-coordinate">01 / 03</b></div>
+        <div className="hero-mark" aria-hidden="true"><div className="hero-orbit orbit-a"/><div className="hero-orbit orbit-b"/><div className="hero-orbit orbit-c"/><div className="hero-core"><span>✳</span><small>KNOWLEDGE<br/>ENGINE</small></div><i className="orbit-node node-a"/><i className="orbit-node node-b"/><b className="hero-coordinate"></b></div>
       </section>
 
       <div className="rule"><span>THE WORKSPACE</span><span>INPUT → RECALL → RETENTION</span></div>

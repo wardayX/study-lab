@@ -622,16 +622,33 @@ textarea::placeholder {
     margin-bottom: 12px;
 }
 .score-number {
-    font-family: "New Title";
+    display: flex;
+    align-items: baseline;
+    gap: 13px;
+  
+    width: max-content;
+  
+    font-family: 'New Title', sans-serif;
     font-size: 90px;
-    line-height: 1;
-    letter-spacing: -0.07em;
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.035em;
 }
+  
 .score-number span {
-    font-size: 28px;
+    display: inline-block;
+  
+    font-family: 'Nippo', sans-serif;
+    font-size: 30px;
+    font-weight: 500;
+    line-height: 1;
+  
     color: #88867e;
     letter-spacing: 0;
+  
+    transform: translateY(-5px);
 }
+  
 .result-panel h3,
 .empty-revision h3 {
     font-family: "Boska";
@@ -817,6 +834,13 @@ textarea::placeholder {
 @media (max-width: 520px) {
     .app-shell {
         padding: 0 18px;
+    }
+    .score-number {
+        font-size: 76px;
+        gap: 11px;
+    }
+    .score-number span {
+        font-size: 26px;
     }
     .topbar-index {
         font-size: 8px;

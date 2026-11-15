@@ -284,7 +284,7 @@ The implementation has been reviewed and adapted for this project. I should be a
 
 ## Development time
 
-**Actual development time: approximately 2 hours.**
+**Actual development time: approximately 3 hours.**
 
 This includes the implementation of the core learning workflow, frontend styling, AI integration, response validation and initial testing.
 
